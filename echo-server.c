@@ -1,6 +1,5 @@
 #include <netinet/in.h>
 #include <stdio.h>
-#include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -12,13 +11,13 @@
 
 int main(int argc, char *argv[]) {
     int sock;
-    int flags, sflags;
+    int flags;
     struct sockaddr_in server_address;
     struct sockaddr_in client_address;
 
     char buffer[BUFFER_SIZE];
-    socklen_t snda_len, rcva_len;
-    ssize_t len, snd_len;
+    socklen_t rcva_len;
+    ssize_t len;
 
     sock = socket(AF_INET, SOCK_DGRAM, 0); // creating IPv4 UDP socket
     if (sock < 0)
@@ -30,28 +29,32 @@ int main(int argc, char *argv[]) {
     server_address.sin_port = htons(PORT_NUM);          // default port for receiving is PORT_NUM
 
     // bind the socket to a concrete address
-    if (bind(sock, (struct sockaddr *)&server_address, (socklen_t)sizeof(server_address)) < 0)
+    if (bind(sock, (struct sockaddr *)&server_address, (socklen_t)sizeof(server_address)) < 0) {
         syserr("bind");
+    }
 
-    snda_len = (socklen_t)sizeof(client_address);
+    FILE *fptr = fopen("ustalona_nazwa.txt", "wb+");
+    fflush(fptr);
+
     for (;;) {
         do {
+            for (int j = 0; j < BUFFER_SIZE; j++) {
+                buffer[j] = 0;
+            }
+
             rcva_len = (socklen_t)sizeof(client_address);
-            flags = 0; // we do not request anything special
-            len = recvfrom(sock, buffer, sizeof(buffer), flags,
-                           (struct sockaddr *)&client_address, &rcva_len);
-            if (len < 0)
+            len = recvfrom(sock, buffer, sizeof(buffer), 0, (struct sockaddr *)&client_address,
+                           &rcva_len);
+            if (len < 0) {
                 syserr("error on datagram from client socket");
-            else {
-                (void)printf("read from socket: %zd bytes: %.*s\n", len, (int)len, buffer);
-                sflags = 0;
-                snd_len = sendto(sock, buffer, (size_t)len, sflags,
-                                 (struct sockaddr *)&client_address, snda_len);
-                if (snd_len != len) {
-                    syserr("error on sending datagram to client socket");
-                }
+            } else {
+                (void)printf("%zd bytes\n", len);
+                fwrite(buffer, 1, len, fptr);
+                fwrite("\n", 1, 1, fptr);
+                fflush(fptr);
             }
         } while (len > 0);
+
         (void)printf("finished exchange\n");
     }
 

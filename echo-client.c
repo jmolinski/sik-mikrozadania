@@ -8,15 +8,30 @@
 
 #include "err.h"
 
-#define BUFFER_SIZE 1000
+/*
+Zmodyfikuj klienta w ten sposób, aby przyjmował dwa dodatkowe parametry: liczbę pakietów do
+wysłania (n) i rozmiar porcji danych (k). Klient n razy przesyła k dowolnych bajtów do serwera. Do
+skonstruowania takiego komunikatu możesz użyć funkcji memset().
+
+
+Zmodyfikuj serwer w ten sposób, aby czytał w pętli komunikaty od klienta.
+ Po otrzymaniu danych serwer dopisuje je do pliku o ustalonej nazwie,
+ a na standardowe wyjście podaje jedynie liczbę otrzymanych bajtów.
+
+Przetestuj różne wartości k (np. 10, 100, 1000, 5000).
+ Zaobserwuj, czy wartości wypisywane przez serwer zależą od parametru klienta.
+ Uruchom klienta i serwera na dwóch różnych maszynach.
+
+Rozwiązania można prezentować w trakcie zajęć nr 4 lub 5.
+ */
 
 int main(int argc, char *argv[]) {
     int sock;
     struct addrinfo addr_hints;
     struct addrinfo *addr_result;
 
-    int i, flags, sflags;
-    char buffer[BUFFER_SIZE];
+    int sflags;
+
     size_t len;
     ssize_t snd_len, rcv_len;
     struct sockaddr_in my_address;
@@ -24,7 +39,7 @@ int main(int argc, char *argv[]) {
     socklen_t rcva_len;
 
     if (argc < 3) {
-        fatal("Usage: %s host port message ...\n", argv[0]);
+        fatal("Usage: %s host port liczba pakietuw (n) rozmiar porcji (k) \n", argv[0]);
     }
 
     // 'converting' host/port in string to struct addrinfo
@@ -46,41 +61,45 @@ int main(int argc, char *argv[]) {
         ((struct sockaddr_in *)(addr_result->ai_addr))->sin_addr.s_addr; // address IP
     my_address.sin_port = htons((uint16_t)atoi(argv[2])); // port from the command line
 
+    int n = atoi(argv[3]); // liczba pakietów
+    int k = atoi(argv[4]); // liczba pakietów
+
+    unsigned BUFFER_SIZE = k + 10;
+    char *buffer = malloc(BUFFER_SIZE);
+    char *secondary_buffer = malloc(BUFFER_SIZE);
+
     freeaddrinfo(addr_result);
 
     sock = socket(PF_INET, SOCK_DGRAM, 0);
-    if (sock < 0)
+    if (sock < 0) {
         syserr("socket");
+    }
 
-    for (i = 3; i < argc; i++) {
-        len = strnlen(argv[i], BUFFER_SIZE);
-        if (len == BUFFER_SIZE) {
-            (void)fprintf(stderr, "ignoring long parameter %d\n", i);
-            continue;
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < k + 3; j += 5) {
+            buffer[j + 0] = 'm';
+            buffer[j + 1] = 'i';
+            buffer[j + 2] = 'm';
+            buffer[j + 3] = 'u';
+            buffer[j + 4] = 'w';
         }
-        (void)printf("sending to socket: %s\n", argv[i]);
+
+        (void)printf("sending to socket: msg of size %d\n", k);
         sflags = 0;
         rcva_len = (socklen_t)sizeof(my_address);
-        snd_len = sendto(sock, argv[i], len, sflags, (struct sockaddr *)&my_address, rcva_len);
+        len = k;
+        snd_len = sendto(sock, buffer, len, sflags, (struct sockaddr *)&my_address, rcva_len);
         if (snd_len != (ssize_t)len) {
             syserr("partial / failed write");
         }
-
-        (void)memset(buffer, 0, sizeof(buffer));
-        flags = 0;
-        len = (size_t)sizeof(buffer) - 1;
-        rcva_len = (socklen_t)sizeof(srvr_address);
-        rcv_len = recvfrom(sock, buffer, len, flags, (struct sockaddr *)&srvr_address, &rcva_len);
-
-        if (rcv_len < 0) {
-            syserr("read");
-        }
-        (void)printf("read from socket: %zd bytes: %s\n", rcv_len, buffer);
     }
 
     if (close(sock) == -1) { // very rare errors can occur here, but then
         syserr("close");     // it's healthy to do the check
     }
+
+    free(buffer);
+    free(secondary_buffer);
 
     return 0;
 }
