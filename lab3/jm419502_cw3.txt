@@ -1,0 +1,116 @@
+Jakub Moliński 491502
+
+1. Jaki jest adres IP serwera, do którego zostało wysłane pierwsze zapytanie?
+
+; <<>> DiG 9.16.12 <<>> cs.ru.nl
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 17420
+;; flags: qr rd ra ad; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 512
+;; QUESTION SECTION:
+;cs.ru.nl.			IN	A
+
+;; ANSWER SECTION:
+cs.ru.nl.		21599	IN	A	131.174.9.227
+
+;; Query time: 3 msec
+;; SERVER: 192.168.0.1#53(192.168.0.1)
+;; WHEN: Tue Mar 23 00:11:56 CET 2021
+;; MSG SIZE  rcvd: 53
+
+Adres serwera, do którego zostało wysłane zapytanie: 192.168.0.1 (chyba mój router keszuje, na students wynik jest inny)
+
+2. Jaki protokół warstwy transportowej został użyty?
+
+UDP
+
+3. Na jaki port serwera zostały wysłane zapytania? Czy jest to ten sam port, z którego serwer wysyła odpowiedzi?
+
+53, tak
+
+4. Jakie są części komunikatu DNS? Co znajduje się w nagłówku?
+Części: nagłówek, zapytanie, odpowiedź, authority, dodatkowe informacje
+
+Nagłówek zawiera:
+1. identyfikator 
+2. flagi 
+3. liczbę zapytań 
+4. liczbę odpowiedzi
+5. liczbę rekordów w części Authority 
+6. liczbę rekordów dodatkowych
+
+5. Skąd wiadomo, którego z pytań dotyczy odpowiedź?
+
+W nagłówku znajduje się identyfikator wybrany przez dig - zwrotka z serwera DNS zawiera ten sam identyfikator.
+
+6. Ile odpowiedzi zostało udzielonych na pierwsze zapytanie?
+
+1
+
+7. W odpowiedzi na drugie pytanie przekazywane są nazwy głównych serwerów DNS. Ile ich jest i w jakiej kolejności się pojawiają?
+
+; <<>> DiG 9.16.12 <<>> cs.ru.nl +trace
+;; global options: +cmd
+.			43307	IN	NS	m.root-servers.net.
+.			43307	IN	NS	b.root-servers.net.
+.			43307	IN	NS	c.root-servers.net.
+.			43307	IN	NS	d.root-servers.net.
+.			43307	IN	NS	e.root-servers.net.
+.			43307	IN	NS	f.root-servers.net.
+.			43307	IN	NS	g.root-servers.net.
+.			43307	IN	NS	h.root-servers.net.
+.			43307	IN	NS	a.root-servers.net.
+.			43307	IN	NS	i.root-servers.net.
+.			43307	IN	NS	j.root-servers.net.
+.			43307	IN	NS	k.root-servers.net.
+.			43307	IN	NS	l.root-servers.net.
+.			43307	IN	RRSIG	NS 8 0 518400 20210403170000 20210321160000 42351 . piWEZgR41+ACn/6J69RVS6VYCLWH3FJBe5vg5AV5hHXpIdYsuJrzqBq4 HYLztxpCH/lZZalCvUYa+hwoAwCK2K9R0vxKJq1ErwZ421cn37UgJpoX c+PNnLw+WWxvlsdioRKCFu32C0yKEUgznKfNaKJVruwUaRb/Y3VNv2Ab ptrIU6aHojygyrbAS6+kn9DYy9xqrB6GwJUKwFUU5Rcv3sAi60OsMVax wNViza4BkXeFHiRDYowzxbwdvyYGt1F5ITldFJyPuhFAI5v/5+ypKNaK PvDtr7N3QcmoWlaRyrpKQhrysco2qb0WAeu56OoCffAD19lZ3ybZWbrO XoGqZA==
+;; Received 525 bytes from 192.168.0.1#53(192.168.0.1) in 203 ms
+
+(pomijam dalszy output bo jest bardzo długi)
+
+tych serwerów jest 13, przekazywane są w kolejności losowej (a przynajmniej tak się wydaje - chyba są przez jakiś czas keszowane)
+
+8. Wymień dwa serwery autorytatywne dla domeny wroc.pl?
+
+; <<>> DiG 9.16.12 <<>> wroc.pl
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 58338
+;; flags: qr rd ra; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 512
+;; QUESTION SECTION:
+;wroc.pl.			IN	A
+
+;; AUTHORITY SECTION:
+wroc.pl.		1799	IN	SOA	wask.wask.wroc.pl. admin.wask.wroc.pl. 2021032001 43200 3600 1209600 86400
+
+;; Query time: 70 msec
+;; SERVER: 192.168.0.1#53(192.168.0.1)
+;; WHEN: Tue Mar 23 00:24:31 CET 2021
+;; MSG SIZE  rcvd: 88
+
+wask.wask.wroc.pl. admin.wask.wroc.pl.
+
+9. Podaj adres IP serwerów domeny wyższego rzędu sl?
+
+dig sl
+
+wyskakują 2 adresy w sekcji answer
+
+potem na tych adresach
+dig A ns1.neoip.com.
+dig A ns2.neoip.com.
+
+ip: 45.83.41.38 i 64.202.189.47
+
+10. Jaki adres IP odpowiada nazwie io.coi.pw.edu.pl?
+
+dig A io.coi.pw.edu.pl
+
+194.29.128.1
