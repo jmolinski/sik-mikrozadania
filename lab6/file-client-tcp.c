@@ -89,6 +89,8 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    fclose(fd);
+
     if (close(sock) < 0) {
         syserr("closing stream socket");
     }
