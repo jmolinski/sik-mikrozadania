@@ -15,13 +15,10 @@
 
 const char GET_TIME[10] = "GET TIME\0\0";
 
-void setSockOptions(int sock, int sock2) {
+void setSockOptions(int sock) {
     /* uaktywnienie rozgłaszania (ang. broadcast) */
     int optval = 1;
     if (setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (void *)&optval, sizeof optval) < 0) {
-        syserr("setsockopt broadcast");
-    }
-    if (setsockopt(sock2, SOL_SOCKET, SO_BROADCAST, (void *)&optval, sizeof optval) < 0) {
         syserr("setsockopt broadcast");
     }
 
@@ -48,13 +45,8 @@ int main(int argc, char *argv[]) {
     if (sock < 0) {
         syserr("socket");
     }
-    /* otwarcie gniazda */
-    int listen_sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sock < 0) {
-        syserr("socket");
-    }
 
-    setSockOptions(sock, listen_sock);
+    setSockOptions(sock);
 
     /* ustawienie adresu i portu odbiorcy */
     struct sockaddr_in remote_address;
@@ -80,7 +72,6 @@ int main(int argc, char *argv[]) {
         printf("Sending request [%d]\n", i);
 
         int num_events = poll(pfds, 1, 3000);
-
         if (num_events == 0) {
             continue;
         }
@@ -113,6 +104,5 @@ int main(int argc, char *argv[]) {
     }
 
     close(sock);
-    close(listen_sock);
     exit(EXIT_SUCCESS);
 }
